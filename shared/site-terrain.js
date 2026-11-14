@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createSoilTexture } from './surface-effects.js';
 
-export function createSiteTerrain(id, site, lunar = false) {
+export function createSiteTerrain(site) {
   const group = new THREE.Group();
   const base = site.height(0, 0);
   const height = (x, z) => site.height(x, z) - base - .08;
@@ -10,21 +10,19 @@ export function createSiteTerrain(id, site, lunar = false) {
   const position = mesh.getAttribute('position');
   const color = new THREE.Color();
   const soilColor = new THREE.Color(site.soil);
-  const lightSoil = new THREE.Color(0xc1a78a);
   const colors = new Float32Array(position.count * 3);
   for (let i = 0; i < position.count; i++) {
     const x = position.getX(i), z = position.getZ(i);
     position.setY(i, height(x, z));
     const patch = .06 * Math.sin(x * .7 + Math.cos(z * .9)) + .055 * Math.sin(x * 2.1 - z * .94);
     color.copy(soilColor).multiplyScalar(1 + patch + (random(i + 42) - .5) * .055);
-    if (id === 'spirit') color.lerp(lightSoil, .73 * Math.exp(-((x - .15) ** 2 + (z + 2.3) ** 2) / 1.5));
     color.toArray(colors, i * 3);
   }
   mesh.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   mesh.computeVertexNormals();
-  const soil = createSoilTexture(site.ripple, lunar);
+  const soil = createSoilTexture(site.ripple);
   const floor = new THREE.Mesh(mesh, new THREE.MeshStandardMaterial({
-    vertexColors: true, roughness: 1, map: soil.color, bumpMap: soil.height, bumpScale: lunar ? .009 : .025 + .028 * site.ripple,
+    vertexColors: true, roughness: 1, map: soil.color, bumpMap: soil.height, bumpScale: .009,
   }));
   floor.receiveShadow = true;
   group.add(floor);
@@ -42,7 +40,7 @@ export function createSiteTerrain(id, site, lunar = false) {
   stones.castShadow = stones.receiveShadow = true;
   const stone = new THREE.Object3D();
   const rockColor = new THREE.Color(site.rock);
-  const clear = id === 'viking-2' ? 1.65 : 2.7;
+  const clear = 2.7;
   for (let i = 0; i < stones.count; i++) {
     const angle = random(i + 5000) * Math.PI * 2;
     const radius = clear + Math.pow(random(i + 5100), 1.65) * 22;

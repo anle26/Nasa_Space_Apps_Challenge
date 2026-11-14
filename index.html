@@ -3,32 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dấu vết trên Sao Hỏa</title>
+  <title>Dấu vết trên Mặt Trăng</title>
   <link rel="stylesheet" href="./shared/viewer.css">
 </head>
 <body>
   <main class="layout">
-    <section class="stage" aria-label="Khám phá Sao Hỏa 3D">
+    <section class="stage" aria-label="Khám phá Mặt Trăng 3D">
       <div id="viewport"></div>
       <div id="markers" aria-label="Các điểm nhiệm vụ"></div>
       <div id="replay-markers" aria-label="Các mốc trên cảnh 3D" hidden></div>
       <header class="stage-title">
         <p class="kicker">BẢN ĐỒ NHIỆM VỤ</p>
-        <h1>Sao Hỏa</h1>
+        <h1>Mặt Trăng</h1>
         <p id="hint">Kéo để xoay · Cuộn để thu phóng</p>
       </header>
       <button id="back" type="button" hidden>← Về quả cầu</button>
       <p id="message" role="status" hidden></p>
       <div class="stage-footer">
-        <a id="scene-source" href="https://science.nasa.gov/3d-resources/mars/" target="_blank" rel="noopener">Ảnh bề mặt · NASA/JPL ↗</a>
+        <a id="scene-source" href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noopener">Ảnh bề mặt · NASA LRO ↗</a>
         <button id="reset" type="button">Đặt lại góc nhìn</button>
       </div>
     </section>
     <aside aria-label="Hồ sơ nhiệm vụ">
-      <nav class="body-nav" aria-label="Chọn thiên thể">
-        <a id="nav-mars" href="?" aria-current="page">Sao Hỏa</a>
-        <a id="nav-moon" href="?body=moon">Mặt Trăng</a>
-      </nav>
       <section id="catalog">
         <h2>Thiết bị ở lại</h2>
         <p class="intro">Chọn chấm vàng hoặc chọn một thiết bị để bay đến khu vực nhiệm vụ và xem mô hình 3D.</p>

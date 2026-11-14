@@ -1,13 +1,11 @@
-import { Box3, MathUtils, Quaternion, Vector3 } from 'three';
+import { Box3, MathUtils, Vector3 } from 'three';
 
 const pins = [[-4.4, .55, 1.2], [0, .7, -4.8], [4.4, .55, 1.4]].map(p => new Vector3(...p));
 export const routeOverview = new Vector3(2, 11, 15);
 export const routeFocus = new Vector3(0, .4, -.8);
 const views = [[4.2, 2.8, 5], [3.3, 2.3, 4.2], [2.9, 2.6, 5.15]];
 const restHeight = -.075;
-const shaftAxis = new Vector3(1, 0, 0);
-const wheelAxis = new Vector3(0, 0, 1);
-const roverWheelAxis = new Vector3(1, 0, 0);
+const wheelAxis = new Vector3(1, 0, 0);
 
 export function createReplay(camera, controls, reducedMotion, dust, createOperation) {
   const element = id => document.getElementById(id);
@@ -21,7 +19,6 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
   let mission, model, motion;
   let operation;
   let stationary;
-  let joints = [];
   let wheels = [];
   let entries = [];
   let index = -1;
@@ -60,7 +57,6 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
   }
 
   function resetPose() {
-    for (const { part, rest } of joints) part.quaternion.copy(rest);
     for (const wheel of wheels) wheel.part.quaternion.copy(wheel.rest);
     model.rotation.set(0, 0, 0);
     operation?.reset();
@@ -75,7 +71,6 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
     index = i;
     const destination = new Vector3(0, restHeight, 0);
     const rover = mission.type === 'Xe tự hành';
-    const helicopter = mission.id === 'ingenuity';
     if (!stationary) destination.set(pins[i].x, restHeight, pins[i].z);
     if (stationary) {
       resetPose();
@@ -84,32 +79,25 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
     const from = model.position.clone();
     from.y = restHeight;
     const distance = from.distanceTo(destination);
-    const takeoff = helicopter && distance > .01;
-    const solar = mission.id === 'insight' && i === 1;
-    const deploy = stationary && i === (mission.id === 'insight' ? 2 : 1);
+    const deploy = stationary && i === 1;
     const landing = stationary && i === 0 && mission.landing !== false;
     const setup = i === 0 && Boolean(operation?.setup);
     const drive = rover && distance > .01;
-    const cruise = drive || takeoff ? distance / mission.travel.speed * 1000 : 0;
-    const climb = takeoff ? mission.travel.flight.altitude / mission.travel.flight.verticalSpeed * 1000 : 0;
+    const cruise = drive ? distance / mission.travel.speed * 1000 : 0;
     const pace = Number(rate.value);
-    const transfer = cruise ? (cruise + 2 * climb) / pace : 0;
-    const duration = cruise ? 1800 + transfer : deploy || solar ? 4300 : landing || setup ? 2700 : 1300;
+    const transfer = cruise ? cruise / pace : 0;
+    const duration = cruise ? 1800 + transfer : deploy ? 4300 : landing || setup ? 2700 : 1300;
     motion = {
       start: now,
       duration,
-      takeoff,
-      solar,
       deploy,
       landing,
       setup,
       drive,
       distance,
       cruise: cruise / pace,
-      climb: climb / pace,
       wheelStart: wheels.map(wheel => wheel.part.quaternion.clone()),
-      failedWheel: mission.id === 'spirit' && i > 0,
-      heading: drive || takeoff ? Math.atan2(destination.x - from.x, destination.z - from.z) : 0,
+      heading: drive ? Math.atan2(destination.x - from.x, destination.z - from.z) : 0,
       headingFrom: model.rotation.y,
       cameraFrom: camera.position.clone(),
       targetFrom: controls.target.clone(),
@@ -142,7 +130,7 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
         controls.target.lerpVectors(travelOverview ? routeFocus : motion.targetFrom, motion.targetTo, frame);
       }
       const movingTime = elapsed - 900;
-      const travel = travelOverview ? MathUtils.clamp((movingTime - motion.climb) / motion.cruise, 0, 1) : eased;
+      const travel = travelOverview ? MathUtils.clamp(movingTime / motion.cruise, 0, 1) : eased;
       model.position.lerpVectors(motion.modelFrom, motion.destination, travel);
       const surfaceY = groundOffset(model.position.x, model.position.z);
       model.position.y += surfaceY;
@@ -152,40 +140,18 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
         model.rotation.y = motion.headingFrom + turn * MathUtils.smoothstep(elapsed, 0, 900);
         for (const [i, wheel] of wheels.entries()) {
           wheel.part.quaternion.copy(motion.wheelStart[i]);
-          if (!motion.failedWheel || !wheel.frontRight) {
-            wheel.part.rotateOnAxis(wheel.axis, wheel.sign * travel * motion.distance / wheel.radius);
-          }
+          wheel.part.rotateOnAxis(wheelAxis, travel * motion.distance / wheel.radius);
         }
-      }
-      if (motion.takeoff) {
-        const altitude = MathUtils.clamp(Math.min(movingTime, 2 * motion.climb + motion.cruise - movingTime) / motion.climb, 0, 1);
-        model.position.y += altitude * mission.travel.flight.altitude;
-        const turn = Math.atan2(Math.sin(motion.heading - motion.headingFrom), Math.cos(motion.heading - motion.headingFrom));
-        model.rotation.y = motion.headingFrom + turn * MathUtils.smoothstep(elapsed, 0, 900 + motion.climb);
-        model.rotation.x = .14 * Math.sin(Math.PI * travel);
       }
       if (motion.landing) model.position.y += 1.65 * (1 - MathUtils.smoothstep(t, 0, .85));
 
-      if (!reducedMotion && motion.takeoff) {
-        const nearGround = 1 - MathUtils.smoothstep(model.position.y - restHeight - surfaceY, .05, .72);
-        const rotorPower = MathUtils.smoothstep(t, .06, .22) * (1 - MathUtils.smoothstep(t, .86, 1));
-        dust.update(model.position, .25 + t * .55, nearGround * rotorPower, surfaceY);
-      } else if (!reducedMotion && motion.landing) {
+      if (!reducedMotion && motion.landing) {
         const contact = MathUtils.smoothstep(t, .72, .86) * (1 - MathUtils.smoothstep(t, .89, 1));
         dust.update(model.position, MathUtils.smoothstep(t, .72, 1), contact * .58, surfaceY);
       } else if (!reducedMotion && motion.drive) {
         dust.update(model.position, travel * .45, mission.travel.speed > 1 ? Math.sin(Math.PI * travel) * .34 : 0, surfaceY);
       }
 
-      for (const [i, { part, rest }] of joints.entries()) {
-        part.quaternion.copy(rest);
-        if (motion.takeoff) {
-          // The GLB stores both rotors along their parent's local X axis.
-        const angle = 88 * (t - Math.sin(2 * Math.PI * t) / (2 * Math.PI));
-          part.rotateOnWorldAxis(shaftAxis, (i === 0 ? 1 : -1) * angle);
-        }
-      }
-      if (motion.solar) operation?.openPanels(t);
       if (motion.setup) operation.setup(t);
       if (motion.deploy) {
         const followHeight = operation?.update(t) ?? 0;
@@ -244,7 +210,7 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
       if (mission.travel) {
         const source = element('travel-source');
         source.href = mission.travel.source;
-        source.textContent = 'Tốc độ ở chế độ 1× · ' + mission.travel.label + (mission.travel.flight ? ' khi bay ngang' : '');
+        source.textContent = 'Tốc độ ở chế độ 1× · ' + mission.travel.label;
       }
       index = -1;
       caption.textContent = selectionHint();
@@ -294,14 +260,8 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
         if (!/^suspension_(left|right)_(front|middle|rear)_wheel$/.test(part.name)) return;
         const radius = new Box3().setFromObject(part, true).getSize(new Vector3()).y / 2;
         if (!radius) return;
-        const axis = part.userData.wheelAxis === 'x' ? roverWheelAxis : wheelAxis;
-        const direction = axis.clone().transformDirection(part.matrixWorld);
-        wheels.push({ part, rest: part.quaternion.clone(), radius, axis, sign: Math.sign(direction.x),
-          frontRight: part.name === 'suspension_right_front_wheel' });
+        wheels.push({ part, rest: part.quaternion.clone(), radius });
       });
-      const names = mission.id === 'ingenuity' ? ['rotors_01', 'rotors_02'] : [];
-      joints = names.map(name => model.getObjectByName(name)).filter(Boolean)
-        .map(part => ({ part, rest: new Quaternion().copy(part.quaternion) }));
       refresh();
     },
     close() {
@@ -309,7 +269,6 @@ export function createReplay(camera, controls, reducedMotion, dust, createOperat
       operation?.dispose();
       operation = null;
       model = null;
-      joints = [];
       wheels = [];
       layer.hidden = true;
     },

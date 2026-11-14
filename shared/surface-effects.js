@@ -9,7 +9,7 @@ function canvas(size) {
   return image.getContext('2d');
 }
 
-export function createSoilTexture(rippleStrength, gray = false) {
+export function createSoilTexture(rippleStrength) {
   const size = 256;
   const pigment = canvas(size);
   const relief = canvas(size);
@@ -23,9 +23,9 @@ export function createSoilTexture(rippleStrength, gray = false) {
       const grain = Math.random() * 52;
       const ripple = rippleStrength * Math.sin(u * 3 + v * 5 + 2 * Math.sin(u - v));
       const mottling = Math.sin(u * 7 - v * 3) * Math.cos(v * 4) + Math.cos(u + 2 * v);
-      const shade = 185 + grain + 10 * ripple + (gray ? 3 : 12) * mottling;
-      pixels.data.set(gray ? [shade, shade, shade, 255] : [shade, shade * .94, shade * .86, 255], i);
-      const h = 130 + grain + 14 * ripple + (gray ? 4 : 15) * mottling;
+      const shade = 185 + grain + 10 * ripple + 3 * mottling;
+      pixels.data.set([shade, shade, shade, 255], i);
+      const h = 130 + grain + 14 * ripple + 4 * mottling;
       heights.data.set([h, h, h, 255], i);
     }
   }

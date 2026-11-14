@@ -6,14 +6,10 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createReplay, routeFocus, routeOverview } from './mission-replay.js';
 import { createDust } from './surface-effects.js';
 import { createSiteTerrain } from './site-terrain.js';
+import { assetFolder, bodyName, missions, modelDimensions, terrainSites, createOperation, loadModel, globeTexture, globeSource } from '../moon/index.js';
 
 const $ = id => document.getElementById(id);
-const body = new URLSearchParams(location.search).get('body') === 'moon'
-  ? await import('../moon/index.js')
-  : await import('../mars/index.js');
-const { bodyName, missions, modelDimensions, terrainSites, createOperation, loadModel, globeTexture, globeSource } = body;
-const isMoon = bodyName === 'Mặt Trăng';
-const asset = name => import.meta.env.BASE_URL + body.assetFolder + '/' + name;
+const asset = name => import.meta.env.BASE_URL + assetFolder + '/' + name;
 
 const heading = document.querySelector('.stage-title h1');
 const viewport = $('viewport');
@@ -31,13 +27,6 @@ function showMessage(text = '') {
 }
 
 try {
-  document.title = 'Dấu vết trên ' + bodyName;
-  document.querySelector('.stage').setAttribute('aria-label', 'Khám phá ' + bodyName + ' 3D');
-  if (isMoon) {
-    $('nav-mars').removeAttribute('aria-current');
-    $('nav-moon').setAttribute('aria-current', 'page');
-  }
-  showGlobeHeading();
   start();
 } catch (error) {
   showMessage('Không thể mở 3D. Hãy thử trình duyệt có hỗ trợ WebGL.');
@@ -50,7 +39,7 @@ function showGlobeHeading() {
   document.querySelector('.stage-title .kicker').textContent = 'BẢN ĐỒ NHIỆM VỤ';
   const link = $('scene-source');
   link.href = globeSource;
-  link.textContent = isMoon ? 'Ảnh bề mặt · NASA LRO ↗' : 'Ảnh bề mặt · NASA/JPL ↗';
+  link.textContent = 'Ảnh bề mặt · NASA LRO ↗';
 }
 
 function start() {
@@ -68,12 +57,11 @@ function start() {
   const globe = new THREE.Scene();
   globe.background = new THREE.Color(0x0c0a11);
   const surface = new THREE.Scene();
-  surface.background = new THREE.Color(0xa8674a);
-  surface.fog = new THREE.FogExp2(0xa8674a, isMoon ? 0 : .035);
-  const dust = createDust(surface, isMoon ? 0xa6a1a0 : undefined);
+  surface.background = new THREE.Color();
+  const dust = createDust(surface, 0xa6a1a0);
   const replay = createReplay(camera, controls, reduceMotion, dust, createOperation);
 
-  const sphereMaterial = new THREE.MeshStandardMaterial({ color: isMoon ? 0x888585 : 0xa95433, roughness: 0.93 });
+  const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x888585, roughness: 0.93 });
   const planet = new THREE.Mesh(new THREE.SphereGeometry(2, 96, 64), sphereMaterial);
   globe.add(planet);
   new THREE.TextureLoader().load(asset(globeTexture), texture => {
@@ -94,13 +82,13 @@ function start() {
   }
   stars.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
   globe.add(new THREE.Points(stars, new THREE.PointsMaterial({ color: 0xcac7d5, size: 0.12 })));
-  globe.add(new THREE.HemisphereLight(isMoon ? 0xe4e9ff : 0xffdfc8, isMoon ? 0x343642 : 0x8a4d32, isMoon ? 1.35 : 2));
-  const sun = new THREE.DirectionalLight(isMoon ? 0xfff7eb : 0xffeee0, 2.4);
+  globe.add(new THREE.HemisphereLight(0xe4e9ff, 0x343642, 1.35));
+  const sun = new THREE.DirectionalLight(0xfff7eb, 2.4);
   sun.position.set(5, 4, 3);
   globe.add(sun);
 
-  surface.add(new THREE.HemisphereLight(isMoon ? 0xf1f3ff : 0xffe5d2, isMoon ? 0x626369 : 0x966344, isMoon ? .65 : 1.15));
-  const key = new THREE.DirectionalLight(isMoon ? 0xfff9f0 : 0xffe3bf, 2.45);
+  surface.add(new THREE.HemisphereLight(0xf1f3ff, 0x626369, .65));
+  const key = new THREE.DirectionalLight(0xfff9f0, 2.45);
   key.position.set(-6, 8, 3);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -145,7 +133,7 @@ function start() {
     return { vector, button };
   });
   const projection = new THREE.Vector3();
-  const initial = (isMoon ? geo(10, 0) : geo(17, 42)).multiplyScalar(6.7);
+  const initial = geo(10, 0).multiplyScalar(6.7);
   let globeView = initial.clone();
 
   function reset() {
@@ -188,11 +176,10 @@ function start() {
     flight = null;
     active = mission;
     const site = terrainSites[mission.id];
-    if (!siteCache.has(mission.id)) siteCache.set(mission.id, createSiteTerrain(mission.id, site, isMoon));
+    if (!siteCache.has(mission.id)) siteCache.set(mission.id, createSiteTerrain(site));
     const terrain = siteCache.get(mission.id);
     surface.add(terrain.group);
     surface.background.setHex(site.sky);
-    surface.fog.color.setHex(site.sky);
     replay.setTerrain(terrain.groundOffset);
     controls.enabled = true;
     $('reset').disabled = false;
@@ -334,7 +321,6 @@ function fitModel(scene, filename, dimensions) {
   const center = box.getCenter(new THREE.Vector3());
   let ground = box.min.y;
   let referenceSpan = Math.max(size.x, size.z);
-  if (filename === 'mer-articulated.glb') referenceSpan = size.x;
   if (filename === 'lrv-oldschool.glb') {
     const wheels = ['left_front', 'left_rear', 'right_front', 'right_rear']
       .map(name => object.getObjectByName('suspension_' + name + '_wheel'));
@@ -364,26 +350,6 @@ function fitModel(scene, filename, dimensions) {
     ground = pads.min.y + .23;
   }
   if (filename === 'alsep-nassp.glb') referenceSpan = meters;
-  if (filename === 'ingenuity.glb') {
-    const rotor = object.getObjectByName('rotors_01');
-    const shaft = rotor.getWorldPosition(new THREE.Vector3());
-    const vertex = new THREE.Vector3();
-    let radius = 0;
-    rotor.traverse(part => {
-      if (!part.isMesh) return;
-      const positions = part.geometry.getAttribute('position');
-      for (let i = 0; i < positions.count; i++) {
-        vertex.fromBufferAttribute(positions, i).applyMatrix4(part.matrixWorld);
-        radius = Math.max(radius, Math.hypot(vertex.x - shaft.x, vertex.z - shaft.z));
-      }
-    });
-    referenceSpan = radius * 2;
-  }
-  if (filename === 'insight-deployed.glb') {
-    const arrays = new THREE.Box3().setFromObject(object.getObjectByName('panel_l_root'), true);
-    arrays.expandByObject(object.getObjectByName('panel_r_root'), true);
-    referenceSpan = arrays.max.x - arrays.min.x;
-  }
   const scale = meters / referenceSpan;
   const verticalScale = height ? height / (box.max.y - (filename === 'surveyor-nassp.glb' ? box.min.y : ground)) : scale;
   const wrapper = new THREE.Group();
