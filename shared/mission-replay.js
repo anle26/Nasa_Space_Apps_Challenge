@@ -1,22 +1,22 @@
 import { Box3, MathUtils, Quaternion, Vector3 } from 'three';
-import { replayTitles } from './mars-missions-data.js';
-import { createLanderOperation } from './mars-lander-operations.js';
 
-const pins = [[-2.15, .55, .65], [0, .7, -2.3], [2.15, .55, .85]].map(p => new Vector3(...p));
+const pins = [[-4.4, .55, 1.2], [0, .7, -4.8], [4.4, .55, 1.4]].map(p => new Vector3(...p));
+export const routeOverview = new Vector3(2, 11, 15);
+export const routeFocus = new Vector3(0, .4, -.8);
 const views = [[4.2, 2.8, 5], [3.3, 2.3, 4.2], [2.9, 2.6, 5.15]];
 const restHeight = -.075;
 const shaftAxis = new Vector3(1, 0, 0);
 const wheelAxis = new Vector3(0, 0, 1);
-const flightOverview = new Vector3(4.7, 3.7, 6.4);
-const flightFocus = new Vector3(0, .65, 0);
+const roverWheelAxis = new Vector3(1, 0, 0);
 
-export function createReplay(camera, controls, reducedMotion, dust) {
+export function createReplay(camera, controls, reducedMotion, dust, createOperation) {
   const element = id => document.getElementById(id);
   const layer = element('replay-markers');
   const play = element('replay-play');
   const previous = element('replay-prev');
   const next = element('replay-next');
   const caption = element('replay-caption');
+  const rate = element('replay-rate');
   const projection = new Vector3();
   let mission, model, motion;
   let operation;
@@ -27,10 +27,12 @@ export function createReplay(camera, controls, reducedMotion, dust) {
   let index = -1;
   let playing = false;
   let advanceAt = Infinity;
+  let pausedAt = null;
   let groundOffset = () => 0;
 
   function refresh() {
     play.disabled = !model;
+    rate.disabled = Boolean(motion) || playing;
     play.textContent = playing ? 'Ⅱ Tạm dừng' : '▶ Phát hành trình';
     previous.disabled = !model || index <= 0;
     next.disabled = !model || index >= entries.length - 1;
@@ -44,14 +46,16 @@ export function createReplay(camera, controls, reducedMotion, dust) {
 
   function stop() {
     playing = false;
+    pausedAt = null;
     advanceAt = Infinity;
     refresh();
   }
 
   function cancelMotion() {
-    stop();
     motion = null;
+    stop();
     dust.hide();
+    operation?.clearEffects?.();
     if (model) model.position.y = restHeight + groundOffset(model.position.x, model.position.z);
   }
 
@@ -83,9 +87,14 @@ export function createReplay(camera, controls, reducedMotion, dust) {
     const takeoff = helicopter && distance > .01;
     const solar = mission.id === 'insight' && i === 1;
     const deploy = stationary && i === (mission.id === 'insight' ? 2 : 1);
-    const landing = stationary && i === 0;
+    const landing = stationary && i === 0 && mission.landing !== false;
+    const setup = i === 0 && Boolean(operation?.setup);
     const drive = rover && distance > .01;
-    const duration = takeoff ? 4600 : deploy || solar ? 4300 : landing || drive ? 2700 : 1300;
+    const cruise = drive || takeoff ? distance / mission.travel.speed * 1000 : 0;
+    const climb = takeoff ? mission.travel.flight.altitude / mission.travel.flight.verticalSpeed * 1000 : 0;
+    const pace = Number(rate.value);
+    const transfer = cruise ? (cruise + 2 * climb) / pace : 0;
+    const duration = cruise ? 1800 + transfer : deploy || solar ? 4300 : landing || setup ? 2700 : 1300;
     motion = {
       start: now,
       duration,
@@ -93,8 +102,11 @@ export function createReplay(camera, controls, reducedMotion, dust) {
       solar,
       deploy,
       landing,
+      setup,
       drive,
       distance,
+      cruise: cruise / pace,
+      climb: climb / pace,
       wheelStart: wheels.map(wheel => wheel.part.quaternion.clone()),
       failedWheel: mission.id === 'spirit' && i > 0,
       heading: drive || takeoff ? Math.atan2(destination.x - from.x, destination.z - from.z) : 0,
@@ -107,51 +119,49 @@ export function createReplay(camera, controls, reducedMotion, dust) {
       targetTo: new Vector3(destination.x, model.userData.focusHeight, destination.z),
       destination,
     };
-    advanceAt = playing ? now + Math.max(5200, duration + 1200) : Infinity;
-    caption.textContent = 'Mốc ' + (i + 1) + ' / ' + entries.length + ' · ' + replayTitles[mission.id][i];
+    advanceAt = playing ? now + (reducedMotion ? 1200 : Math.max(3200, duration + 1200)) : Infinity;
+    caption.textContent = 'Mốc ' + (i + 1) + ' / ' + entries.length + ' · ' + mission.titles[i];
     refresh();
     if (reducedMotion) animate(now);
   }
 
   function animate(now) {
+    if (pausedAt !== null) return;
     if (motion) {
-      const t = reducedMotion ? 1 : MathUtils.clamp((now - motion.start) / motion.duration, 0, 1);
+      const elapsed = reducedMotion ? motion.duration : now - motion.start;
+      const t = MathUtils.clamp(elapsed / motion.duration, 0, 1);
       const eased = MathUtils.smoothstep(t, 0, 1);
-      const travelOverview = motion.takeoff || motion.drive;
-      if (travelOverview && t < .84) {
-        // Keep the departure and destination visible during the flight.
-        const widen = MathUtils.smoothstep(t, 0, .22);
-        camera.position.lerpVectors(motion.cameraFrom, flightOverview, widen);
-        controls.target.lerpVectors(motion.targetFrom, flightFocus, widen);
+      const travelOverview = motion.cruise > 0;
+      if (travelOverview && elapsed < motion.duration - 900) {
+        const widen = MathUtils.smoothstep(elapsed, 0, 900);
+        camera.position.lerpVectors(motion.cameraFrom, routeOverview, widen);
+        controls.target.lerpVectors(motion.targetFrom, routeFocus, widen);
       } else {
-        const frame = travelOverview ? MathUtils.smoothstep(t, .84, 1) : eased;
-        camera.position.lerpVectors(travelOverview ? flightOverview : motion.cameraFrom, motion.cameraTo, frame);
-        controls.target.lerpVectors(travelOverview ? flightFocus : motion.targetFrom, motion.targetTo, frame);
+        const frame = travelOverview ? MathUtils.smoothstep(elapsed, motion.duration - 900, motion.duration) : eased;
+        camera.position.lerpVectors(travelOverview ? routeOverview : motion.cameraFrom, motion.cameraTo, frame);
+        controls.target.lerpVectors(travelOverview ? routeFocus : motion.targetFrom, motion.targetTo, frame);
       }
-      const travel = motion.takeoff ? MathUtils.smoothstep(t, .31, .72)
-        : motion.drive ? MathUtils.smoothstep(t, .25, 1) : eased;
+      const movingTime = elapsed - 900;
+      const travel = travelOverview ? MathUtils.clamp((movingTime - motion.climb) / motion.cruise, 0, 1) : eased;
       model.position.lerpVectors(motion.modelFrom, motion.destination, travel);
       const surfaceY = groundOffset(model.position.x, model.position.z);
       model.position.y += surfaceY;
       controls.target.y += surfaceY;
       if (motion.drive) {
         const turn = Math.atan2(Math.sin(motion.heading - motion.headingFrom), Math.cos(motion.heading - motion.headingFrom));
-        model.rotation.y = motion.headingFrom + turn * MathUtils.smoothstep(t, 0, .35);
-        const roll = Math.sin(travel * motion.distance * 9) * Math.sin(Math.PI * travel);
-        model.rotation.z = roll * .035;
-        model.position.y += Math.abs(roll) * .025;
+        model.rotation.y = motion.headingFrom + turn * MathUtils.smoothstep(elapsed, 0, 900);
         for (const [i, wheel] of wheels.entries()) {
           wheel.part.quaternion.copy(motion.wheelStart[i]);
           if (!motion.failedWheel || !wheel.frontRight) {
-            wheel.part.rotateOnAxis(wheelAxis, wheel.sign * travel * motion.distance / wheel.radius);
+            wheel.part.rotateOnAxis(wheel.axis, wheel.sign * travel * motion.distance / wheel.radius);
           }
         }
       }
       if (motion.takeoff) {
-        const altitude = MathUtils.smoothstep(t, .15, .32) * (1 - MathUtils.smoothstep(t, .72, .88));
-        model.position.y += altitude * 1.35;
+        const altitude = MathUtils.clamp(Math.min(movingTime, 2 * motion.climb + motion.cruise - movingTime) / motion.climb, 0, 1);
+        model.position.y += altitude * mission.travel.flight.altitude;
         const turn = Math.atan2(Math.sin(motion.heading - motion.headingFrom), Math.cos(motion.heading - motion.headingFrom));
-        model.rotation.y = motion.headingFrom + turn * MathUtils.smoothstep(t, .14, .38);
+        model.rotation.y = motion.headingFrom + turn * MathUtils.smoothstep(elapsed, 0, 900 + motion.climb);
         model.rotation.x = .14 * Math.sin(Math.PI * travel);
       }
       if (motion.landing) model.position.y += 1.65 * (1 - MathUtils.smoothstep(t, 0, .85));
@@ -164,24 +174,30 @@ export function createReplay(camera, controls, reducedMotion, dust) {
         const contact = MathUtils.smoothstep(t, .72, .86) * (1 - MathUtils.smoothstep(t, .89, 1));
         dust.update(model.position, MathUtils.smoothstep(t, .72, 1), contact * .58, surfaceY);
       } else if (!reducedMotion && motion.drive) {
-        dust.update(model.position, travel * .45, Math.sin(Math.PI * travel) * .34, surfaceY);
+        dust.update(model.position, travel * .45, mission.travel.speed > 1 ? Math.sin(Math.PI * travel) * .34 : 0, surfaceY);
       }
 
       for (const [i, { part, rest }] of joints.entries()) {
         part.quaternion.copy(rest);
         if (motion.takeoff) {
           // The GLB stores both rotors along their parent's local X axis.
-          const angle = 88 * (t - Math.sin(2 * Math.PI * t) / (2 * Math.PI));
+        const angle = 88 * (t - Math.sin(2 * Math.PI * t) / (2 * Math.PI));
           part.rotateOnWorldAxis(shaftAxis, (i === 0 ? 1 : -1) * angle);
         }
       }
       if (motion.solar) operation?.openPanels(t);
-      if (motion.deploy) operation?.update(t);
+      if (motion.setup) operation.setup(t);
+      if (motion.deploy) {
+        const followHeight = operation?.update(t) ?? 0;
+        controls.target.y += followHeight;
+        camera.position.y += followHeight * .45;
+      }
       if (t === 1) {
         model.position.copy(motion.destination);
         model.position.y += groundOffset(model.position.x, model.position.z);
         motion = null;
         dust.hide();
+        refresh();
       }
     }
     if (playing && now >= advanceAt) {
@@ -197,7 +213,16 @@ export function createReplay(camera, controls, reducedMotion, dust) {
 
   play.addEventListener('click', () => {
     if (playing) {
-      cancelMotion();
+      pausedAt = performance.now();
+      playing = false;
+      refresh();
+    } else if (pausedAt !== null) {
+      const delay = performance.now() - pausedAt;
+      if (motion) motion.start += delay;
+      advanceAt += delay;
+      pausedAt = null;
+      playing = true;
+      refresh();
     } else {
       playing = true;
       select(index < 0 || index === entries.length - 1 ? 0 : index);
@@ -213,11 +238,18 @@ export function createReplay(camera, controls, reducedMotion, dust) {
     setTerrain(height) { groundOffset = height; },
     open(selectedMission) {
       mission = selectedMission;
-      stationary = mission.type === 'Tàu đổ bộ';
+      stationary = mission.stationary ?? mission.type === 'Tàu đổ bộ';
+      element('travel-rate').hidden = element('travel-note').hidden = !mission.travel;
+      rate.value = '1';
+      if (mission.travel) {
+        const source = element('travel-source');
+        source.href = mission.travel.source;
+        source.textContent = 'Tốc độ ở chế độ 1× · ' + mission.travel.label + (mission.travel.flight ? ' khi bay ngang' : '');
+      }
       index = -1;
       caption.textContent = selectionHint();
       entries = mission.timeline.map(([date, event, source], i) => {
-        const title = replayTitles[mission.id][i];
+        const title = mission.titles[i];
         const pin = document.createElement('button');
         pin.type = 'button';
         pin.className = 'replay-pin';
@@ -256,14 +288,15 @@ export function createReplay(camera, controls, reducedMotion, dust) {
     },
     attach(loadedModel) {
       model = loadedModel;
-      operation = createLanderOperation(model, mission);
+      operation = createOperation(model, mission);
       model.updateWorldMatrix(true, true);
       model.traverse(part => {
         if (!/^suspension_(left|right)_(front|middle|rear)_wheel$/.test(part.name)) return;
         const radius = new Box3().setFromObject(part, true).getSize(new Vector3()).y / 2;
         if (!radius) return;
-        const axis = wheelAxis.clone().transformDirection(part.matrixWorld);
-        wheels.push({ part, rest: part.quaternion.clone(), radius, sign: Math.sign(axis.x),
+        const axis = part.userData.wheelAxis === 'x' ? roverWheelAxis : wheelAxis;
+        const direction = axis.clone().transformDirection(part.matrixWorld);
+        wheels.push({ part, rest: part.quaternion.clone(), radius, axis, sign: Math.sign(direction.x),
           frontRight: part.name === 'suspension_right_front_wheel' });
       });
       const names = mission.id === 'ingenuity' ? ['rotors_01', 'rotors_02'] : [];

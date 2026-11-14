@@ -21,11 +21,17 @@ export const modelDimensions = {
   },
 };
 
+const merTravel = {
+  speed: .0375, label: '3,75 cm/s',
+  source: 'https://robotics.jpl.nasa.gov/media/documents/biesiadecki_driving05.pdf',
+};
+
 export const missions = [
   {
     id: 'ingenuity', name: 'Ingenuity', type: 'Trực thăng', site: 'Valinor Hills · Hố Jezero',
     lat: 18.45, lon: 77.4, location: 'Vùng hoạt động gần điểm dừng cuối',
     model: 'ingenuity.glb', credit: 'NASA / Brian E. Kumanchik',
+    travel: { speed: 2, label: '2 m/s', flight: { altitude: 1.35, verticalSpeed: 1 }, source: 'https://www.jpl.nasa.gov/missions/ingenuity/' },
     source: 'https://science.nasa.gov/blog/farewell-to-our-flying-friend-and-closing-in-on-the-crater-rim/',
     summary: 'Ingenuity chứng minh máy bay có thể cất cánh có kiểm soát trong khí quyển loãng của Sao Hỏa. Sau đó, nó giúp Perseverance quan sát địa hình từ trên cao.',
     timeline: [['2021', 'Đến hố Jezero cùng xe Perseverance.'], ['19/04/2021', 'Thực hiện chuyến bay có động cơ đầu tiên trên một hành tinh khác.'], ['18/01/2024', 'Cánh quạt hư hỏng khi hạ cánh sau chuyến bay thứ 72 tại Valinor Hills.']],
@@ -34,6 +40,7 @@ export const missions = [
     id: 'opportunity', name: 'Opportunity', type: 'Xe tự hành', site: 'Perseverance Valley · Meridiani Planum',
     lat: -2.0, lon: -5.4, location: 'Vùng hoạt động gần điểm dừng cuối',
     model: 'mer-articulated.glb', credit: 'NASA/JPL-Caltech',
+    travel: merTravel,
     source: 'https://science.nasa.gov/mission/mer-opportunity/',
     summary: 'Opportunity nghiên cứu đất đá và tìm thấy bằng chứng về nước lỏng trong quá khứ. Chiếc xe đi hơn 45 km trong gần 15 năm hoạt động.',
     timeline: [['2004', 'Hạ cánh tại hố Eagle ở Meridiani Planum.'], ['2011', 'Đến hố Endeavour và tiếp tục khảo sát các lớp đá.'], ['2018–2019', 'Gửi tín hiệu cuối từ Perseverance Valley trong bão bụi toàn cầu. NASA kết thúc nhiệm vụ năm 2019.']],
@@ -42,6 +49,7 @@ export const missions = [
     id: 'spirit', name: 'Spirit', type: 'Xe tự hành', site: 'Troy · Hố Gusev',
     lat: -14.6, lon: 175.5, location: 'Vùng hoạt động gần điểm dừng cuối',
     model: 'mer-articulated.glb', credit: 'NASA/JPL-Caltech',
+    travel: merTravel,
     source: 'https://science.nasa.gov/mission/mer-spirit/',
     summary: 'Spirit khảo sát đá và đất ở hố Gusev, tìm thấy dấu vết cho thấy Sao Hỏa từng ẩm ướt hơn.',
     timeline: [['2004', 'Hạ cánh tại hố Gusev và bắt đầu khảo sát.'], ['2009', 'Mắc kẹt trong nền đất mềm tại khu vực Troy.'], ['2010–2011', 'Gửi tín hiệu cuối năm 2010. NASA kết thúc nỗ lực liên lạc năm 2011.']],
