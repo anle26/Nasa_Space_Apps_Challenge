@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dấu vết trên Sao Hỏa</title>
+  <link rel="stylesheet" href="./mars-missions.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="stage" aria-label="Khám phá Sao Hỏa 3D">
+      <div id="viewport"></div>
+      <div id="markers" aria-label="Các điểm nhiệm vụ"></div>
+      <div id="replay-markers" aria-label="Các mốc trên cảnh 3D" hidden></div>
+      <header class="stage-title">
+        <p class="kicker">BẢN ĐỒ NHIỆM VỤ</p>
+        <h1>Sao Hỏa</h1>
+        <p id="hint">Kéo để xoay · Cuộn để thu phóng</p>
+      </header>
+      <button id="back" type="button" hidden>← Về quả cầu</button>
+      <p id="message" role="status" hidden></p>
+      <div class="stage-footer">
+        <a id="scene-source" href="https://science.nasa.gov/3d-resources/mars/" target="_blank" rel="noopener">Ảnh bề mặt · NASA/JPL ↗</a>
+        <button id="reset" type="button">Đặt lại góc nhìn</button>
+      </div>
+    </section>
+    <aside aria-label="Hồ sơ nhiệm vụ">
+      <section id="catalog">
+        <h2>Thiết bị ở lại</h2>
+        <p class="intro">Chọn chấm vàng hoặc chọn một thiết bị để bay đến khu vực nhiệm vụ và xem mô hình 3D.</p>
+        <div id="mission-list"></div>
+      </section>
+      <section id="details" hidden>
+        <p id="detail-type" class="kicker"></p>
+        <h2 id="detail-name" tabindex="-1"></h2>
+        <p id="detail-site" class="site"></p>
+        <p id="detail-location" class="location-note"></p>
+        <p id="detail-summary"></p>
+        <p class="location-note" id="terrain-note"></p>
+        <p class="location-note">Kích thước thực · <a id="model-size" target="_blank" rel="noopener"></a></p>
+        <h3>Hành trình nhiệm vụ</h3>
+        <div class="replay-controls">
+          <button id="replay-play" type="button" disabled>▶ Phát hành trình</button>
+          <button id="replay-prev" type="button" aria-label="Mốc trước" disabled>←</button>
+          <button id="replay-next" type="button" aria-label="Mốc sau" disabled>→</button>
+        </div>
+        <p id="replay-caption" aria-live="polite">Chọn một mốc trong cảnh 3D hoặc trong danh sách.</p>
+        <ol id="timeline"></ol>
+        <a id="mission-source" target="_blank" rel="noopener">Hồ sơ nhiệm vụ NASA ↗</a>
+        <p id="model-credit" class="location-note"></p>
+      </section>
+    </aside>
+  </main>
+  <script type="module" src="./mars-missions.js"></script>
+</body>
+</html>

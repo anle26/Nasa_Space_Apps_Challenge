@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dingo Gap · Khám phá Sao Hỏa</title>
+  <link rel="stylesheet" href="./mars-explorer.css">
+</head>
+<body>
+  <main id="viewer" aria-label="Địa hình 3D của Dingo Gap"></main>
+  <header>
+    <p class="location">SAO HỎA / HỐ GALE</p>
+    <h1>Dingo Gap</h1>
+    <p>Khám phá địa hình được tái dựng từ ảnh của xe Curiosity và tàu quỹ đạo Mars Reconnaissance Orbiter.</p>
+    <p id="status" role="status">Đang tải địa hình…</p>
+  </header>
+  <footer>
+    <div class="instructions">
+      <span class="mouse">Kéo để xoay · Cuộn để thu phóng</span>
+      <span class="touch">Kéo để xoay · Chụm hai ngón để thu phóng</span>
+      <a href="https://github.com/NASA-AMMOS/3DTilesSampleData/tree/master/msl-dingo-gap" target="_blank" rel="noopener">Nguồn địa hình · NASA-AMMOS ↗</a>
+    </div>
+    <button id="reset" type="button">Đặt lại góc nhìn</button>
+  </footer>
+  <script type="module" src="./mars-explorer.js"></script>
+</body>
+</html>
