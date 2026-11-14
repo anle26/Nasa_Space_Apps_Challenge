@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dấu vết trên Sao Hỏa</title>
-  <link rel="stylesheet" href="./shared/viewer.css">
+  <link rel="stylesheet" href="./mars-missions.css">
 </head>
 <body>
   <main class="layout">
@@ -25,10 +25,6 @@
       </div>
     </section>
     <aside aria-label="Hồ sơ nhiệm vụ">
-      <nav class="body-nav" aria-label="Chọn thiên thể">
-        <a id="nav-mars" href="?" aria-current="page">Sao Hỏa</a>
-        <a id="nav-moon" href="?body=moon">Mặt Trăng</a>
-      </nav>
       <section id="catalog">
         <h2>Thiết bị ở lại</h2>
         <p class="intro">Chọn chấm vàng hoặc chọn một thiết bị để bay đến khu vực nhiệm vụ và xem mô hình 3D.</p>
@@ -41,27 +37,20 @@
         <p id="detail-location" class="location-note"></p>
         <p id="detail-summary"></p>
         <p class="location-note" id="terrain-note"></p>
-        <p class="location-note"><span id="model-size-label">Kích thước thực · </span><a id="model-size" target="_blank" rel="noopener"></a></p>
+        <p class="location-note">Kích thước thực · <a id="model-size" target="_blank" rel="noopener"></a></p>
         <h3>Hành trình nhiệm vụ</h3>
-        <p id="travel-note" class="location-note" hidden><a id="travel-source" target="_blank" rel="noopener"></a>. Ba điểm minh họa các mốc nhiệm vụ.</p>
         <div class="replay-controls">
           <button id="replay-play" type="button" disabled>▶ Phát hành trình</button>
           <button id="replay-prev" type="button" aria-label="Mốc trước" disabled>←</button>
           <button id="replay-next" type="button" aria-label="Mốc sau" disabled>→</button>
-          <label id="travel-rate" hidden>Phát <select id="replay-rate" aria-label="Tốc độ phát">
-            <option value="1">1×</option>
-            <option value="10">10×</option>
-            <option value="30">30×</option>
-          </select></label>
         </div>
         <p id="replay-caption" aria-live="polite">Chọn một mốc trong cảnh 3D hoặc trong danh sách.</p>
         <ol id="timeline"></ol>
         <a id="mission-source" target="_blank" rel="noopener">Hồ sơ nhiệm vụ NASA ↗</a>
         <p id="model-credit" class="location-note"></p>
-        <a id="model-source" target="_blank" rel="noopener" hidden>Nguồn mô hình 3D ↗</a>
       </section>
     </aside>
   </main>
-  <script type="module" src="./shared/viewer.js"></script>
+  <script type="module" src="./mars-missions.js"></script>
 </body>
 </html>

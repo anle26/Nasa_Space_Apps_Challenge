@@ -9,7 +9,7 @@ function canvas(size) {
   return image.getContext('2d');
 }
 
-export function createSoilTexture(rippleStrength, gray = false) {
+export function createSoilTexture(rippleStrength) {
   const size = 256;
   const pigment = canvas(size);
   const relief = canvas(size);
@@ -23,9 +23,9 @@ export function createSoilTexture(rippleStrength, gray = false) {
       const grain = Math.random() * 52;
       const ripple = rippleStrength * Math.sin(u * 3 + v * 5 + 2 * Math.sin(u - v));
       const mottling = Math.sin(u * 7 - v * 3) * Math.cos(v * 4) + Math.cos(u + 2 * v);
-      const shade = 185 + grain + 10 * ripple + (gray ? 3 : 12) * mottling;
-      pixels.data.set(gray ? [shade, shade, shade, 255] : [shade, shade * .94, shade * .86, 255], i);
-      const h = 130 + grain + 14 * ripple + (gray ? 4 : 15) * mottling;
+      const shade = 185 + grain + 10 * ripple + 12 * mottling;
+      pixels.data.set([shade, shade * .94, shade * .86, 255], i);
+      const h = 130 + grain + 14 * ripple + 15 * mottling;
       heights.data.set([h, h, h, 255], i);
     }
   }
@@ -42,7 +42,7 @@ export function createSoilTexture(rippleStrength, gray = false) {
   return { color, height };
 }
 
-export function createDust(scene, color = 0xc38b61) {
+export function createDust(scene) {
   const sprite = canvas(64);
   const gradient = sprite.createRadialGradient(32, 32, 0, 32, 32, 32);
   gradient.addColorStop(0, 'rgba(255,255,255,.85)');
@@ -62,7 +62,7 @@ export function createDust(scene, color = 0xc38b61) {
   const position = new BufferAttribute(positions, 3);
   geometry.setAttribute('position', position);
   const material = new PointsMaterial({
-    color: new Color(color), map: new CanvasTexture(sprite.canvas),
+    color: new Color(0xc38b61), map: new CanvasTexture(sprite.canvas),
     size: .23, transparent: true, depthWrite: false,
   });
   const cloud = new Points(geometry, material);

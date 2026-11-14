@@ -17,9 +17,6 @@ h2 { font-size: clamp(24px, 3.5vw, 40px); line-height: 1.13; letter-spacing: -.0
 h3 { font-size: 15px; margin: 25px 0 12px; }
 #hint, .intro, .site, .location-note { color: #d3bfb1; }
 aside { overflow-y: auto; padding: clamp(20px, 3vw, 42px); border-left: 1px solid #3e2d27; background: #1c1513; }
-.body-nav { display: flex; gap: 6px; margin-bottom: 24px; }
-.body-nav a { padding: 5px 11px; border: 1px solid #77543d; border-radius: 7px; text-decoration: none; }
-.body-nav a:hover, .body-nav a[aria-current="page"] { background: #523524; color: #fff3e3; }
 .intro { margin: 0 0 22px; }
 #mission-list { display: grid; gap: 8px; }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -67,8 +64,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid #ffd56e; outline-offs
   border: 1px solid #77543d; border-radius: 7px; background: #2d2019; color: #f8eee5;
 }
 .replay-controls button { padding: 6px 10px; }
-.replay-controls label { display: inline-flex; align-items: center; gap: 5px; }
-.replay-controls select { font: inherit; color: inherit; background: #2d2019; border: 1px solid #77543d; border-radius: 7px; padding: 5px; }
 .replay-controls button:disabled, .replay-step:disabled { opacity: .55; cursor: default; }
 #replay-caption { color: #e4c7b1; font-size: 12px; margin: 0 0 10px; }
 #timeline { padding: 0; border: 0; }
