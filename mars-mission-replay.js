@@ -4,6 +4,7 @@ import { createLanderOperation } from './mars-lander-operations.js';
 
 const pins = [[-2.15, .55, .65], [0, .7, -2.3], [2.15, .55, .85]].map(p => new Vector3(...p));
 const views = [[4.2, 2.8, 5], [3.3, 2.3, 4.2], [2.9, 2.6, 5.15]];
+const yogiView = [-3.1, 3.6, 5.7];
 const restHeight = -.075;
 const shaftAxis = new Vector3(1, 0, 0);
 const wheelAxis = new Vector3(0, 0, 1);
@@ -86,6 +87,7 @@ export function createReplay(camera, controls, reducedMotion, dust) {
     const landing = stationary && i === 0;
     const drive = rover && distance > .01;
     const duration = takeoff ? 4600 : deploy || solar ? 4300 : landing || drive ? 2700 : 1300;
+    const view = mission.id === 'sojourner' && i === 2 ? yogiView : views[i] ?? views[2];
     motion = {
       start: now,
       duration,
@@ -102,7 +104,7 @@ export function createReplay(camera, controls, reducedMotion, dust) {
       cameraFrom: camera.position.clone(),
       targetFrom: controls.target.clone(),
       modelFrom: from,
-      cameraTo: new Vector3(...(views[i] ?? views[2])).multiplyScalar(model.userData.framing)
+      cameraTo: new Vector3(...view).multiplyScalar(model.userData.framing)
         .add(new Vector3(destination.x, model.userData.focusHeight - .9, destination.z)),
       targetTo: new Vector3(destination.x, model.userData.focusHeight, destination.z),
       destination,

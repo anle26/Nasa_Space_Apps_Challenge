@@ -4,6 +4,13 @@ import { createSoilTexture } from './mars-surface-effects.js';
 // Site-specific artistic reconstructions from surface imagery. Dimensions
 // describe this scene in meters and are not a survey of the landing site.
 export const terrainSites = {
+  sojourner: {
+    title: 'Ares Vallis', source: 'https://science.nasa.gov/resource/360-degree-panorama-in-3-d/',
+    note: 'Đồng bằng nhiều sỏi đá với Barnacle Bill và Yogi. Vị trí đá và đường xe chạy trong cảnh là minh họa, hành trình được phát nhanh.',
+    soil: 0xa47a60, rock: 0x746056, sky: 0xa78773, count: 470, radius: .13, flatness: .59, ripple: .04,
+    height: (x, z) => .035 * Math.sin(x * .82 + z * .46) + .024 * Math.sin(z * .63),
+    outcrops: [[-.44, -2.68, .19], [2.93, .60, .41], [-3.75, -2.8, .35], [4.3, -2.85, .56]],
+  },
   ingenuity: {
     title: 'Valinor Hills', source: 'https://science.nasa.gov/photojournal/ingenuity-at-valinor-hills/',
     note: 'Cát mịn với các dải gợn song song và ít đá lớn.',

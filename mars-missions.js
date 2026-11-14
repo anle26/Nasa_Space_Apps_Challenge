@@ -7,6 +7,7 @@ import { missions, modelDimensions } from './mars-missions-data.js';
 import { createReplay } from './mars-mission-replay.js';
 import { createDust } from './mars-surface-effects.js';
 import { createSiteTerrain, terrainSites } from './mars-site-terrain.js';
+import { articulateSojourner } from './mars-sojourner.js';
 
 const $ = id => document.getElementById(id);
 const asset = name => import.meta.env.BASE_URL + 'mars-assets/' + name;
@@ -99,6 +100,10 @@ function start() {
   draco.setDecoderPath(new URL('draco/', new URL(asset('mars.jpg'), location.href)).href);
   const loader = new GLTFLoader().setDRACOLoader(draco);
   async function loadMissionModel(filename) {
+    if (filename === 'sojourner-dan.glb') {
+      const { scene } = await loader.loadAsync(asset(filename));
+      return { scene: articulateSojourner(scene) };
+    }
     if (filename !== 'insight-deployed.glb') return loader.loadAsync(asset(filename));
     const [deployed, instruments] = await Promise.all([
       loader.loadAsync(asset(filename)),
@@ -176,8 +181,9 @@ function start() {
   let globeView = initial.clone();
 
   function reset() {
-    const span = active ? modelDimensions[active.model].meters : 3;
-    const framing = Math.max(.64, span / 3);
+    const dimensions = active ? modelDimensions[active.model] : null;
+    const span = dimensions?.meters ?? 3;
+    const framing = dimensions?.framing ?? Math.max(.64, span / 3);
     controls.target.set(0, active ? modelFocusHeight() : 0, 0);
     controls.minDistance = active ? Math.max(.85, span * .7) : 4.4;
     controls.maxDistance = active ? Math.max(12, span * 4) : 13;
@@ -233,6 +239,12 @@ function start() {
     $('model-size').href = dimensions.source;
     $('mission-source').href = mission.source;
     $('model-credit').textContent = 'Mô hình 3D · ' + mission.credit;
+    const modelReference = $('model-reference');
+    modelReference.hidden = !mission.modelReference;
+    if (mission.modelReference) modelReference.href = mission.modelReference;
+    const modelLicense = $('model-license');
+    modelLicense.hidden = !mission.modelLicense;
+    if (mission.modelLicense) modelLicense.href = mission.modelLicense;
     replay.open(mission);
     document.querySelector('.stage-title h1').textContent = mission.name;
     document.querySelector('.stage-title .kicker').textContent = site.title;
@@ -242,7 +254,7 @@ function start() {
     $('terrain-note').textContent = site.note;
     $('detail-name').focus({ preventScroll: true });
     reset();
-    showMessage('Đang tải mô hình NASA…');
+    showMessage('Đang tải mô hình 3D…');
 
     if (!savedModels.has(mission.model)) {
       savedModels.set(mission.model, loadMissionModel(mission.model).catch(error => {
@@ -252,7 +264,7 @@ function start() {
     }
     savedModels.get(mission.model).then(result => {
       if (active !== mission || model) return;
-      model = fitModel(result.scene, mission.model, dimensions.meters);
+      model = fitModel(result.scene, mission.model, dimensions);
       surface.add(model);
       replay.attach(model);
       reset();
@@ -346,7 +358,7 @@ function geo(latitude, longitude) {
   return new THREE.Vector3(Math.cos(lat) * Math.cos(lon), Math.sin(lat), -Math.cos(lat) * Math.sin(lon));
 }
 
-function fitModel(scene, filename, meters) {
+function fitModel(scene, filename, { meters, framing }) {
   const object = scene.clone(true);
   object.traverse(part => {
     if (!part.isMesh) return;
@@ -384,7 +396,7 @@ function fitModel(scene, filename, meters) {
   wrapper.scale.setScalar(scale);
   wrapper.position.y = -.075;
   wrapper.userData.focusHeight = size.y * scale * .46;
-  wrapper.userData.framing = Math.max(.64, meters / 3);
+  wrapper.userData.framing = framing ?? Math.max(.64, meters / 3);
   wrapper.add(object);
   return wrapper;
 }

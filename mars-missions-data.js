@@ -1,4 +1,10 @@
 export const modelDimensions = {
+  'sojourner-dan.glb': {
+    meters: .65,
+    framing: .29,
+    label: 'Dài khoảng 65 cm · Rộng 48 cm · Cao 30 cm',
+    source: 'https://ntrs.nasa.gov/api/citations/19950009761/downloads/19950009761.pdf',
+  },
   'ingenuity.glb': {
     meters: 1.2,
     label: 'Đường kính cánh quạt 1,2 m · Cao khoảng 0,49 m',
@@ -22,6 +28,20 @@ export const modelDimensions = {
 };
 
 export const missions = [
+  {
+    id: 'sojourner', name: 'Sojourner', type: 'Xe tự hành', site: 'Ares Vallis · Mars Pathfinder',
+    lat: 19.17, lon: -33.21, location: 'Vị trí hạ cánh của Mars Pathfinder',
+    model: 'sojourner-dan.glb', credit: 'Dan · Mô hình thu về chiều dài 65 cm, giữ nguyên tỉ lệ của bản dựng và thêm chuyển động bánh xe.',
+    modelReference: 'https://sketchfab.com/3d-models/mars-sojourner-rover-model-8b3810e7cd804bd6b0009520c67984c6',
+    modelLicense: 'https://creativecommons.org/licenses/by/4.0/',
+    source: 'https://science.nasa.gov/mission/mars-pathfinder/',
+    summary: 'Sojourner là xe tự hành đầu tiên hoạt động trên Sao Hỏa. Xe dùng máy quang phổ APXS để phân tích đất đá quanh trạm Pathfinder. Trạm gửi dữ liệu lần cuối ngày 27/09/1997.',
+    timeline: [
+      ['05/07/1997', 'Sojourner lăn xuống dốc của trạm Pathfinder và bắt đầu khám phá Ares Vallis.', 'https://science.nasa.gov/resource/sojourner-near-barnacle-bill-3-d/'],
+      ['Sol 3', 'Xe khảo sát Barnacle Bill bằng máy quang phổ APXS. Kết quả cho thấy đá có thành phần gần với đá andesit.', 'https://science.nasa.gov/resource/sojourner-barnacle-bill-yogi/'],
+      ['Sol 8–10', 'Xe đặt máy APXS lên tảng đá Yogi. Kết quả ban đầu cho thấy Yogi giống đá bazan phổ biến trên Trái Đất.', 'https://science.nasa.gov/resource/sojourner-yogi/'],
+    ],
+  },
   {
     id: 'ingenuity', name: 'Ingenuity', type: 'Trực thăng', site: 'Valinor Hills · Hố Jezero',
     lat: 18.45, lon: 77.4, location: 'Vùng hoạt động gần điểm dừng cuối',
@@ -78,6 +98,7 @@ export const missions = [
 ];
 
 export const replayTitles = {
+  sojourner: ['Xuống khỏi Pathfinder', 'Khảo sát Barnacle Bill', 'Khảo sát Yogi'],
   ingenuity: ['Đến Jezero', 'Cất cánh lần đầu', 'Chuyến bay thứ 72'],
   opportunity: ['Hạ cánh ở hố Eagle', 'Khảo sát hố Endeavour', 'Tín hiệu cuối'],
   spirit: ['Hạ cánh ở hố Gusev', 'Mắc kẹt tại Troy', 'Kết thúc liên lạc'],

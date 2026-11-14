@@ -1,5 +1,5 @@
 # Nasa_Space_Apps_Challenge
-Bản thử cho NASA Space Apps Challenge. Khám phá sáu thiết bị trên Sao Hỏa, xem mô hình 3D, các mốc nhiệm vụ và hoạt cảnh. Mỗi địa điểm có ngoại cảnh dựng theo ảnh NASA/JPL. Địa hình, lộ trình và chuyển động là minh họa.
+Bản thử cho NASA Space Apps Challenge. Khám phá bảy thiết bị trên Sao Hỏa, xem mô hình 3D, các mốc nhiệm vụ và hoạt cảnh. Mỗi địa điểm có ngoại cảnh dựng theo ảnh NASA/JPL. Địa hình, lộ trình và chuyển động là minh họa.
 
 ## Chạy trên máy
 
@@ -18,5 +18,6 @@ Dùng `pnpm build` để tạo thư mục `dist/` và `pnpm preview` để xem b
 
 - Mô hình và ảnh hành tinh từ [NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources). Thân InSight dùng [InSight Deployed](https://science.nasa.gov/resource/insight-3d-model/). Các bộ phận và tư thế lấy từ [InSight Cruise Lander](https://science.nasa.gov/3d-resources/insight-cruise-lander/).
 - Mỗi cảnh nhiệm vụ có liên kết đến ảnh địa điểm, thông số kích thước và tư liệu nhiệm vụ.
+- [Mars Sojourner Rover Model của Dan](https://sketchfab.com/3d-models/mars-sojourner-rover-model-8b3810e7cd804bd6b0009520c67984c6), giấy phép [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Trình xem chỉnh chiều dài mô hình về 65 cm và tách sáu bánh để mô phỏng chuyển động.
 - Trình xem Dingo Gap dựa trên ví dụ của [NASA-AMMOS/3DTilesRendererJS](https://github.com/NASA-AMMOS/3DTilesRendererJS), với [dữ liệu Dingo Gap](https://github.com/NASA-AMMOS/3DTilesSampleData/tree/master/msl-dingo-gap).
 - Các tệp giải mã Draco được lấy từ bản phân phối [Three.js](https://github.com/mrdoob/three.js). Xem giấy phép đi kèm và [hướng dẫn sử dụng ảnh và dữ liệu NASA](https://www.nasa.gov/nasa-brand-center/images-and-media/).
