@@ -5,6 +5,7 @@ import { createLanderOperation } from './mars-lander-operations.js';
 const pins = [[-2.15, .55, .65], [0, .7, -2.3], [2.15, .55, .85]].map(p => new Vector3(...p));
 const views = [[4.2, 2.8, 5], [3.3, 2.3, 4.2], [2.9, 2.6, 5.15]];
 const yogiView = [-3.1, 3.6, 5.7];
+const insightDeploymentView = [2.8, 2.9, 4.05];
 const restHeight = -.075;
 const shaftAxis = new Vector3(1, 0, 0);
 const wheelAxis = new Vector3(0, 0, 1);
@@ -86,8 +87,10 @@ export function createReplay(camera, controls, reducedMotion, dust) {
     const deploy = stationary && i === (mission.id === 'insight' ? 2 : 1);
     const landing = stationary && i === 0;
     const drive = rover && distance > .01;
-    const duration = takeoff ? 4600 : deploy || solar ? 4300 : landing || drive ? 2700 : 1300;
-    const view = mission.id === 'sojourner' && i === 2 ? yogiView : views[i] ?? views[2];
+    const duration = deploy && mission.id === 'insight' ? 18000
+      : takeoff ? 4600 : deploy || solar ? 4300 : landing || drive ? 2700 : 1300;
+    const view = deploy && mission.id === 'insight' ? insightDeploymentView
+      : mission.id === 'sojourner' && i === 2 ? yogiView : views[i] ?? views[2];
     motion = {
       start: now,
       duration,
@@ -258,7 +261,7 @@ export function createReplay(camera, controls, reducedMotion, dust) {
     },
     attach(loadedModel) {
       model = loadedModel;
-      operation = createLanderOperation(model, mission);
+      operation = createLanderOperation(model, mission, groundOffset);
       model.updateWorldMatrix(true, true);
       model.traverse(part => {
         if (!/^suspension_(left|right)_(front|middle|rear)_wheel$/.test(part.name)) return;

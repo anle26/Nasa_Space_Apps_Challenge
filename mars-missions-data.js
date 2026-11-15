@@ -75,7 +75,7 @@ export const missions = [
     timeline: [
       ['26/11/2018', 'InSight hạ cánh tại Elysium Planitia với hai tấm pin còn gập.'],
       ['26/11/2018', 'Sau khi bụi lắng, hai tấm pin mở ra để cấp điện. Cánh tay robot vẫn ở tư thế thu gọn.', 'https://www.jpl.nasa.gov/news/press_kits/insight/launch/mission/'],
-      ['19/12/2018', 'Cánh tay robot đặt máy đo địa chấn SEIS xuống mặt đất.', 'https://science.nasa.gov/photojournal/seis-deployed-on-mars/'],
+      ['12/2018–02/2019', 'Cánh tay robot đặt máy đo địa chấn SEIS xuống đất ngày 19/12/2018, đặt chụp chắn gió và nhiệt WTS phủ lên SEIS ngày 02/02/2019, rồi đặt bộ đo dòng nhiệt HP³ bên cạnh ngày 12/02/2019. Hoạt cảnh minh họa ba lượt gắp liên tiếp.', 'https://www.jpl.nasa.gov/news/press_kits/insight/landing/mission/spacecraft/'],
       ['2022', 'Bụi phủ tấm pin làm nguồn điện suy giảm. NASA kết thúc nhiệm vụ tháng 12.'],
     ],
   },

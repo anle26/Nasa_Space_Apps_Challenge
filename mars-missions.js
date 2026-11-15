@@ -123,6 +123,7 @@ function start() {
       const kept = [];
       const count = index?.count ?? positions.count;
       const armTrim = ['InSIGHT_tex_01', 'InSIGHT_tex_02'].includes(mesh.material.name);
+      const hasBakedTethers = mesh.material.name === 'InSIGHT_tex_02' && positions.count === 4811;
       const onFixedArm = vertex => {
         const x = positions.getX(vertex);
         return x >= -.62 && x <= -.22 && positions.getY(vertex) > .53 && positions.getZ(vertex) > .85;
@@ -131,6 +132,9 @@ function start() {
         const a = index ? index.getX(i) : i;
         const b = index ? index.getX(i + 1) : i + 1;
         const c = index ? index.getX(i + 2) : i + 2;
+        // These two connected vertex ranges in the NASA Deployed GLB are the
+        // baked tethers. The deployment animation supplies their replacements.
+        if (hasBakedTethers && ((a >= 1890 && a <= 2255) || (a >= 3403 && a <= 3890))) continue;
         const outermostX = Math.max(Math.abs(positions.getX(a)), Math.abs(positions.getX(b)), Math.abs(positions.getX(c)));
         if (outermostX <= 1.4 && Math.max(positions.getZ(a), positions.getZ(b), positions.getZ(c)) <= 1.5
           && !(armTrim && (onFixedArm(a) || onFixedArm(b) || onFixedArm(c)))) {
